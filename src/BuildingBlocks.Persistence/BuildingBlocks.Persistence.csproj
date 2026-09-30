@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- EF Core plumbing shared by every module's *.Infrastructure project.
+       Kept out of BuildingBlocks so Domain/Application/Contracts never pick up
+       EF Core transitively. Only *.Infrastructure (and *.Endpoints for DI) may reference this. -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+
+</Project>

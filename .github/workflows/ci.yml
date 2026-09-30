@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-and-test:
+    name: Build, architecture checks & tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: |
+          dotnet restore
+          dotnet tool restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Module-boundary audit (source)
+        run: dotnet run .claude/hooks/guard.cs -- --scan
+
+      - name: Migrations are up to date with the model
+        run: |
+          for m in Identity Catalog Inventory Sales Notifications Reporting; do
+            dotnet ef migrations has-pending-model-changes \
+              --project src/Modules/$m/$m.Infrastructure \
+              --startup-project src/Modules/$m/$m.Infrastructure \
+              --context $m.Infrastructure.Persistence.${m}DbContext
+          done
+
+      # Unit, architecture, and Testcontainers-backed integration tests.
+      # GitHub-hosted Ubuntu runners have Docker available.
+      - name: Test
+        run: dotnet test --no-build -c Release --logger "trx" --collect:"XPlat Code Coverage" --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults
+
+  docker:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: orderpoint:ci

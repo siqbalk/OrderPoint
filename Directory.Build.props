@@ -1,0 +1,10 @@
+<Project>
+  <!-- Shared by every project in the solution so individual .csproj files only
+       declare what is specific to them (references and packages). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+</Project>

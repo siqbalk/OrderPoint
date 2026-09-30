@@ -1,0 +1,5 @@
+# Personal, per-developer Claude Code overrides (not shared)
+settings.local.json
+
+# Hook runtime state (build-pending marker written by hooks/guard.cs)
+hooks/.state/

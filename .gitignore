@@ -1,0 +1,40 @@
+# Build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+publish/
+artifacts/
+
+# Test results & coverage
+TestResults/
+*.trx
+coverage*.xml
+coverage*.json
+*.coverage
+
+# IDEs
+.vs/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.user
+*.suo
+*.swp
+*.DotSettings.user
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets & local overrides — never commit real keys
+*.env
+.env*
+!.env.example
+appsettings.*.local.json
+secrets.json
+
+# Claude Code per-developer state (the shared .claude/ config IS committed)
+.claude/settings.local.json
+.claude/hooks/.state/

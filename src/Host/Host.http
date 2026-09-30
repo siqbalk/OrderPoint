@@ -1,0 +1,85 @@
+### End-to-end walkthrough. Run requests top to bottom.
+### Use http://localhost:8080 for docker compose, http://localhost:5079 for `dotnet run`.
+@baseUrl = http://localhost:5079
+
+### 1. Sign up an organisation (Free plan) — copy accessToken into @token below
+POST {{baseUrl}}/api/identity/tenants/register
+Content-Type: application/json
+
+{
+  "tenantName": "Acme",
+  "ownerEmail": "owner@acme.test",
+  "ownerDisplayName": "Olivia Owner",
+  "password": "correct horse battery"
+}
+
+###
+@token = paste-access-token-here
+
+### 2. Or sign in
+POST {{baseUrl}}/api/identity/auth/login
+Content-Type: application/json
+
+{ "email": "owner@acme.test", "password": "correct horse battery" }
+
+### 3. Who am I? (tenant, plan usage, permissions)
+GET {{baseUrl}}/api/identity/me
+Authorization: Bearer {{token}}
+
+### 4. Create a product (Inventory opens a stock record via ProductCreated)
+POST {{baseUrl}}/api/catalog/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "sku": "WIDGET-1", "name": "Widget", "description": "A very useful widget", "price": 12.50 }
+
+### 5. Receive stock
+POST {{baseUrl}}/api/inventory/stock
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "sku": "WIDGET-1", "quantity": 100 }
+
+### 6. Place an order (price comes from Catalog; confirmed asynchronously)
+POST {{baseUrl}}/api/sales/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerName": "Ada Lovelace",
+  "customerEmail": "ada@example.com",
+  "lines": [ { "sku": "WIDGET-1", "quantity": 7 } ]
+}
+
+### 7. List orders (status should become Confirmed)
+GET {{baseUrl}}/api/sales/orders
+Authorization: Bearer {{token}}
+
+### 8. Stock levels (7 reserved)
+GET {{baseUrl}}/api/inventory/stock
+Authorization: Bearer {{token}}
+
+### 9. Revenue report
+GET {{baseUrl}}/api/reporting/sales
+Authorization: Bearer {{token}}
+
+### 10. Emails sent
+GET {{baseUrl}}/api/notifications
+Authorization: Bearer {{token}}
+
+### 11. Invite a teammate (the accept link appears in the notifications log / API log)
+POST {{baseUrl}}/api/identity/users/invitations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "email": "mia@acme.test", "displayName": "Mia Member", "role": "Member" }
+
+### 12. Upgrade the plan
+PUT {{baseUrl}}/api/identity/tenant/plan
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "plan": "Pro" }
+
+### 13. Health
+GET {{baseUrl}}/health/ready

@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <UserSecretsId>orderpoint-host-3f6c2a1e</UserSecretsId>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <!-- Host references each module only through its *.Endpoints project, which
+       exposes the module's IModule entry point. Everything else is transitive. -->
+  <ItemGroup>
+    <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.csproj" />
+    <ProjectReference Include="..\Modules\Identity\Identity.Endpoints\Identity.Endpoints.csproj" />
+    <ProjectReference Include="..\Modules\Catalog\Catalog.Endpoints\Catalog.Endpoints.csproj" />
+    <ProjectReference Include="..\Modules\Inventory\Inventory.Endpoints\Inventory.Endpoints.csproj" />
+    <ProjectReference Include="..\Modules\Sales\Sales.Endpoints\Sales.Endpoints.csproj" />
+    <ProjectReference Include="..\Modules\Notifications\Notifications.Endpoints\Notifications.Endpoints.csproj" />
+    <ProjectReference Include="..\Modules\Reporting\Reporting.Endpoints\Reporting.Endpoints.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Scalar.AspNetCore" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+  </ItemGroup>
+
+</Project>

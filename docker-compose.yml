@@ -1,0 +1,62 @@
+# OrderPoint — local, production-shaped stack:
+#   postgres  -> one physical database, one schema per module
+#   migrate   -> applies scripts/migrations/*.sql (idempotent) before the API starts,
+#                exactly as a CI/CD deploy step would — the API never migrates itself
+#   api       -> the OrderPoint API (a modular monolith) on http://localhost:8080 (API docs at /scalar)
+#
+#   docker compose up --build
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: orderpoint
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d orderpoint"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    image: postgres:17-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: orderpoint
+    volumes:
+      - ./scripts/migrations:/migrations:ro
+    entrypoint:
+      - sh
+      - -c
+      - |
+        set -e
+        for f in /migrations/*.sql; do
+          echo "Applying $$f"
+          psql -v ON_ERROR_STOP=1 -q -f "$$f"
+        done
+
+  api:
+    build: .
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Database: Host=postgres;Port=5432;Database=orderpoint;Username=postgres;Password=postgres
+      # Local-only default. Set AUTH_SIGNING_KEY in your shell or a .env file for anything shared.
+      Auth__SigningKey: ${AUTH_SIGNING_KEY:-local-docker-only-signing-key-change-me-0123456789}
+      Notifications__AppBaseUrl: http://localhost:8080
+    ports:
+      - "${API_PORT:-8080}:8080"
+
+volumes:
+  pgdata:
