@@ -1,6 +1,6 @@
 # OrderPoint — multi-tenant commerce operations SaaS on .NET 10
 
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
+[![CI](https://github.com/siqbalk/OrderPoint/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
