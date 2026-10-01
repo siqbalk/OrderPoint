@@ -7,6 +7,7 @@ using Catalog.Contracts;
 using Catalog.Contracts.IntegrationEvents;
 using Catalog.Endpoints.Features.CreateProduct;
 using Catalog.Endpoints.Features.GetProduct;
+using Catalog.Endpoints.Features.GetProductBySku;
 using Catalog.Endpoints.Features.ListProducts;
 using Catalog.Endpoints.Features.UpdateProduct;
 using Catalog.Infrastructure.InternalServices;
@@ -48,6 +49,7 @@ public sealed class CatalogModule : IModule
         group.MapCreateProduct();
         group.MapUpdateProduct();
         group.MapGetProduct();
+        group.MapGetProductBySku();
         group.MapListProducts();
     }
 }

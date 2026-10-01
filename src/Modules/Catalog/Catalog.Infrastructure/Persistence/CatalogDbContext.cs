@@ -25,6 +25,9 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options,
     public Task<Product?> FindByIdAsync(Guid productId, CancellationToken cancellationToken)
         => Products.FirstOrDefaultAsync(p => p.Id == productId, cancellationToken);
 
+    public Task<Product?> FindBySkuAsync(string normalizedSku, CancellationToken cancellationToken)
+        => Products.AsNoTracking().FirstOrDefaultAsync(p => p.Sku == normalizedSku, cancellationToken);
+
     public Task<bool> SkuExistsAsync(string normalizedSku, CancellationToken cancellationToken)
         => Products.AnyAsync(p => p.Sku == normalizedSku, cancellationToken);
 
