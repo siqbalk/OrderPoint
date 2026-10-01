@@ -11,6 +11,8 @@ public interface ICatalogDbContext
 
     Task<Product?> FindByIdAsync(Guid productId, CancellationToken cancellationToken);
 
+    Task<Product?> FindBySkuAsync(string normalizedSku, CancellationToken cancellationToken);
+
     Task<bool> SkuExistsAsync(string normalizedSku, CancellationToken cancellationToken);
 
     Task<int> CountProductsAsync(CancellationToken cancellationToken);
