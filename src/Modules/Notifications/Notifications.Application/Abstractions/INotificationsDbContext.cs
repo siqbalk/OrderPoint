@@ -9,6 +9,8 @@ public interface INotificationsDbContext
 
     Task<bool> ExistsAsync(Guid sourceEventId, string recipient, CancellationToken cancellationToken);
 
+    Task<Notification?> FindByIdAsync(Guid notificationId, CancellationToken cancellationToken);
+
     Task<PagedResult<Notification>> ListAsync(int page, int pageSize, CancellationToken cancellationToken);
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);

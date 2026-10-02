@@ -9,8 +9,6 @@ namespace Notifications.Application.Features.ListNotifications;
 public sealed record ListNotificationsQuery(int Page = 1, int PageSize = Paging.DefaultPageSize)
     : IRequest<Result<PagedResult<NotificationResponse>>>;
 
-public sealed record NotificationResponse(Guid Id, Guid SourceEventId, string Channel, string Recipient, string Subject, string Body, DateTimeOffset SentOnUtc);
-
 public sealed class ListNotificationsValidator : AbstractValidator<ListNotificationsQuery>
 {
     public ListNotificationsValidator()
@@ -26,6 +24,6 @@ public sealed class ListNotificationsHandler(INotificationsDbContext dbContext)
     public async Task<Result<PagedResult<NotificationResponse>>> Handle(ListNotificationsQuery request, CancellationToken cancellationToken)
     {
         var page = await dbContext.ListAsync(request.Page, request.PageSize, cancellationToken);
-        return page.Map(n => new NotificationResponse(n.Id, n.SourceEventId, n.Channel, n.Recipient, n.Subject, n.Body, n.SentOnUtc));
+        return page.Map(NotificationResponse.From);
     }
 }

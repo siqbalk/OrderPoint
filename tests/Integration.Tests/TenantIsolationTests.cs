@@ -46,4 +46,23 @@ public sealed class TenantIsolationTests(PlatformFixture fixture)
         (await globex.PostAsJsonAsync("/api/catalog/products", new { Sku = "SHARED-SKU", Name = "Globex doomsday device", Price = 1m }))
             .EnsureSuccessStatusCode();
     }
+
+    [Fact]
+    public async Task Tenant_CanReadOwnNotificationById_ButNotAnotherTenants()
+    {
+        var acme = await fixture.RegisterTenantAsync("Acme");
+        var globex = (await fixture.RegisterTenantAsync("Globex")).Client;
+
+        var notifications = await Api.EventuallyAsync(
+            () => acme.Client.GetAsync<Paged<NotificationView>>("/api/notifications"),
+            page => page.Items.Any(n => n.Recipient == acme.OwnerEmail),
+            "the welcome email is sent asynchronously via the outbox");
+        var welcome = notifications.Items.First(n => n.Recipient == acme.OwnerEmail);
+
+        var fetched = await (await acme.Client.GetAsync($"/api/notifications/{welcome.Id}")).ReadAsync<NotificationView>();
+        Assert.Equal(welcome, fetched);
+
+        Assert.Equal(HttpStatusCode.NotFound, (await globex.GetAsync($"/api/notifications/{welcome.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await acme.Client.GetAsync($"/api/notifications/{Guid.NewGuid()}")).StatusCode);
+    }
 }
