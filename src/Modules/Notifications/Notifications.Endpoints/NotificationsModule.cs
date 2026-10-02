@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Notifications.Application.Abstractions;
 using Notifications.Application.Features;
 using Notifications.Contracts;
+using Notifications.Endpoints.Features.GetNotification;
 using Notifications.Endpoints.Features.ListNotifications;
 using Notifications.Infrastructure.Email;
 using Notifications.Infrastructure.Persistence;
@@ -44,5 +45,6 @@ public sealed class NotificationsModule : IModule
         var group = endpoints.MapGroup("/api/notifications").WithTags("Notifications");
 
         group.MapListNotifications();
+        group.MapGetNotification();
     }
 }

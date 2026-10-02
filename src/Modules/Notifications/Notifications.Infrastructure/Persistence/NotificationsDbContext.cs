@@ -22,6 +22,9 @@ public sealed class NotificationsDbContext(DbContextOptions<NotificationsDbConte
     public Task<bool> ExistsAsync(Guid sourceEventId, string recipient, CancellationToken cancellationToken)
         => Notifications.AnyAsync(n => n.SourceEventId == sourceEventId && n.Recipient == recipient, cancellationToken);
 
+    public Task<Notification?> FindByIdAsync(Guid notificationId, CancellationToken cancellationToken)
+        => Notifications.AsNoTracking().FirstOrDefaultAsync(n => n.Id == notificationId, cancellationToken);
+
     public async Task<PagedResult<Notification>> ListAsync(int page, int pageSize, CancellationToken cancellationToken)
     {
         var query = Notifications.AsNoTracking();

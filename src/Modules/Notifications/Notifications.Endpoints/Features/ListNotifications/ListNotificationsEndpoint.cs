@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Notifications.Application.Features;
 using Notifications.Application.Features.ListNotifications;
 using Notifications.Contracts;
 
