@@ -7,6 +7,7 @@ using Inventory.Contracts;
 using Inventory.Contracts.IntegrationEvents;
 using Inventory.Endpoints.Features.AddStock;
 using Inventory.Endpoints.Features.AdjustStock;
+using Inventory.Endpoints.Features.GetReservationByOrder;
 using Inventory.Endpoints.Features.GetStockBySku;
 using Inventory.Endpoints.Features.ListStock;
 using Inventory.Infrastructure.InternalServices;
@@ -49,5 +50,9 @@ public sealed class InventoryModule : IModule
         group.MapAdjustStock();
         group.MapGetStockBySku();
         group.MapListStock();
+
+        var reservations = endpoints.MapGroup("/api/inventory/reservations").WithTags("Inventory");
+
+        reservations.MapGetReservationByOrder();
     }
 }

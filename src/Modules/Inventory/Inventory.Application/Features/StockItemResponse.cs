@@ -19,4 +19,7 @@ internal static class InventoryErrors
 {
     public static Error StockNotFound(string sku)
         => Error.NotFound("Stock.NotFound", $"No stock item found for SKU '{sku}'.");
+
+    public static Error ReservationNotFound(Guid orderId)
+        => Error.NotFound("Stock.ReservationNotFound", $"No stock reservation found for order '{orderId}'.");
 }
