@@ -12,8 +12,6 @@ public sealed class ListUsersHandler(IIdentityDbContext dbContext, ITenantContex
     {
         var users = await dbContext.ListUsersAsync(tenantContext.RequiredTenantId, cancellationToken);
 
-        return users
-            .Select(u => new UserResponse(u.Id, u.Email, u.DisplayName, u.Role.ToString(), u.Status.ToString(), u.CreatedOnUtc, u.LastLoginOnUtc))
-            .ToList();
+        return users.Select(UserResponse.From).ToList();
     }
 }

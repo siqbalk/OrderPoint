@@ -1,4 +1,5 @@
 using BuildingBlocks.Results;
+using Identity.Domain;
 using MediatR;
 
 namespace Identity.Application.Features.ListUsers;
@@ -12,4 +13,8 @@ public sealed record UserResponse(
     string Role,
     string Status,
     DateTimeOffset CreatedOnUtc,
-    DateTimeOffset? LastLoginOnUtc);
+    DateTimeOffset? LastLoginOnUtc)
+{
+    public static UserResponse From(User u)
+        => new(u.Id, u.Email, u.DisplayName, u.Role.ToString(), u.Status.ToString(), u.CreatedOnUtc, u.LastLoginOnUtc);
+}
