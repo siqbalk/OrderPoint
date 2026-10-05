@@ -48,4 +48,10 @@ public sealed class SalesDbContext(DbContextOptions<SalesDbContext> options, ITe
 
         return new PagedResult<Order>(items, page, pageSize, total);
     }
+
+    public Task<Dictionary<OrderStatus, int>> CountOrdersByStatusAsync(CancellationToken cancellationToken)
+        => Orders
+            .GroupBy(o => o.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Status, x => x.Count, cancellationToken);
 }

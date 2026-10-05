@@ -18,6 +18,9 @@ public interface ISalesDbContext
 
     Task<PagedResult<Order>> ListOrdersAsync(OrderStatus? status, int page, int pageSize, CancellationToken cancellationToken);
 
+    /// <summary>Number of orders per status; statuses with no orders are absent.</summary>
+    Task<Dictionary<OrderStatus, int>> CountOrdersByStatusAsync(CancellationToken cancellationToken);
+
     IOutboxWriter Outbox { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
