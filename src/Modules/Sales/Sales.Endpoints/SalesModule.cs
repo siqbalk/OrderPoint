@@ -12,6 +12,7 @@ using Sales.Contracts;
 using Sales.Contracts.IntegrationEvents;
 using Sales.Endpoints.Features.CancelOrder;
 using Sales.Endpoints.Features.GetOrder;
+using Sales.Endpoints.Features.GetOrderStatusCounts;
 using Sales.Endpoints.Features.ListOrders;
 using Sales.Endpoints.Features.PlaceOrder;
 using Sales.Infrastructure.Persistence;
@@ -49,6 +50,7 @@ public sealed class SalesModule : IModule
         group.MapPlaceOrder();
         group.MapGetOrder();
         group.MapListOrders();
+        group.MapGetOrderStatusCounts();
         group.MapCancelOrder();
     }
 }
