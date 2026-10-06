@@ -55,6 +55,9 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
             r => r is { ConfirmedOrders: 1, Revenue: 87.50m, ItemsSold: 7 },
             "Reporting booked the confirmed order");
 
+        var top = await api.GetAsync<TopOrdersView>("/api/reporting/sales/top-orders");
+        Assert.Equal(new TopOrderView(placed.Id, 87.50m, 7), Assert.Single(top.Orders));
+
         // Cancel: the compensating path.
         var cancelled = await (await api.PostAsync($"/api/sales/orders/{placed.Id}/cancel", null)).ReadAsync<OrderView>();
         Assert.Equal("Cancelled", cancelled.Status);
@@ -68,6 +71,7 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
             () => api.GetAsync<SalesReportView>("/api/reporting/sales"),
             r => r is { CancelledOrders: 1, Revenue: 0m },
             "Reporting reversed the cancelled revenue");
+        Assert.Empty((await api.GetAsync<TopOrdersView>("/api/reporting/sales/top-orders")).Orders);
 
         var notifications = await Api.EventuallyAsync(
             () => api.GetAsync<Paged<NotificationView>>("/api/notifications"),
