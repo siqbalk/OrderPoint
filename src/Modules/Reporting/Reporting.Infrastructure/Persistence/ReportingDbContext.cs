@@ -34,4 +34,15 @@ public sealed class ReportingDbContext(DbContextOptions<ReportingDbContext> opti
                 g.Sum(r => r.IsCancelled ? 0m : r.Total),
                 g.Sum(r => r.IsCancelled ? 0 : r.ItemCount)))
             .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<TopOrderRow>> GetTopOrdersAsync(DateOnly from, DateOnly to, int limit, CancellationToken cancellationToken)
+        => await SalesRecords
+            .AsNoTracking()
+            .Where(r => !r.IsCancelled && r.ConfirmedOnDate >= from && r.ConfirmedOnDate <= to)
+            .OrderByDescending(r => r.Total)
+            .ThenByDescending(r => r.ConfirmedOnUtc)
+            .ThenBy(r => r.OrderId)
+            .Take(limit)
+            .Select(r => new TopOrderRow(r.OrderId, r.ConfirmedOnUtc, r.Total, r.ItemCount))
+            .ToListAsync(cancellationToken);
 }

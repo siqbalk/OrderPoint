@@ -97,6 +97,10 @@ internal sealed record OrderLineView(string Sku, string ProductName, int Quantit
 
 internal sealed record SalesReportView(decimal Revenue, int ConfirmedOrders, int CancelledOrders, int ItemsSold);
 
+internal sealed record TopOrdersView(IReadOnlyList<TopOrderView> Orders);
+
+internal sealed record TopOrderView(Guid OrderId, decimal Total, int ItemCount);
+
 internal sealed record NotificationView(Guid Id, string Recipient, string Subject, string Body);
 
 internal sealed record MeView(Guid UserId, string Email, string Role, MeTenantView Tenant, List<string> Permissions);

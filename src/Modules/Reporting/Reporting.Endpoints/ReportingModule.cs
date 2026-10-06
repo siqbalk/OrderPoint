@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Reporting.Application.Abstractions;
 using Reporting.Contracts;
 using Reporting.Endpoints.Features.GetSalesReport;
+using Reporting.Endpoints.Features.GetTopOrders;
 using Reporting.Infrastructure.Persistence;
 
 namespace Reporting.Endpoints;
@@ -38,5 +39,6 @@ public sealed class ReportingModule : IModule
         var group = endpoints.MapGroup("/api/reporting").WithTags("Reporting");
 
         group.MapGetSalesReport();
+        group.MapGetTopOrders();
     }
 }
