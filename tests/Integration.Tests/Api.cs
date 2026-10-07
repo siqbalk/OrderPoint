@@ -91,6 +91,8 @@ internal sealed record ProductView(Guid Id, string Sku, string Name, decimal Pri
 
 internal sealed record StockView(Guid Id, string Sku, int QuantityOnHand, int QuantityReserved, int QuantityAvailable);
 
+internal sealed record StockSummaryView(int SkuCount, long QuantityOnHand, long QuantityReserved, long QuantityAvailable, int OutOfStockCount);
+
 internal sealed record OrderView(Guid Id, string Status, decimal Total, string? RejectionReason, List<OrderLineView> Lines);
 
 internal sealed record OrderLineView(string Sku, string ProductName, int Quantity, decimal UnitPrice, decimal LineTotal);

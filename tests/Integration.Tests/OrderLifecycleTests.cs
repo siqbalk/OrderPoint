@@ -49,6 +49,7 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
         var reserved = await api.GetAsync<StockView>("/api/inventory/stock/WIDGET-1");
         Assert.Equal(7, reserved.QuantityReserved);
         Assert.Equal(93, reserved.QuantityAvailable);
+        Assert.Equal(new StockSummaryView(1, 100, 7, 93, 0), await api.GetAsync<StockSummaryView>("/api/inventory/summary"));
 
         await Api.EventuallyAsync(
             () => api.GetAsync<SalesReportView>("/api/reporting/sales"),
@@ -98,6 +99,19 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.Equal("Orders.InsufficientStock", await response.ErrorCodeAsync());
+    }
+
+    [Fact]
+    public async Task StockSummary_CountsOutOfStockSkus()
+    {
+        var api = (await fixture.RegisterTenantAsync()).Client;
+        Assert.Equal(new StockSummaryView(0, 0, 0, 0, 0), await api.GetAsync<StockSummaryView>("/api/inventory/summary"));
+
+        (await api.PostAsJsonAsync("/api/inventory/stock", new { Sku = "IN-STOCK", Quantity = 5 })).EnsureSuccessStatusCode();
+        (await api.PostAsJsonAsync("/api/inventory/stock", new { Sku = "SOLD-OUT", Quantity = 3 })).EnsureSuccessStatusCode();
+        (await api.PutAsJsonAsync("/api/inventory/stock/SOLD-OUT", new { QuantityOnHand = 0 })).EnsureSuccessStatusCode();
+
+        Assert.Equal(new StockSummaryView(2, 5, 0, 5, 1), await api.GetAsync<StockSummaryView>("/api/inventory/summary"));
     }
 
     [Fact]

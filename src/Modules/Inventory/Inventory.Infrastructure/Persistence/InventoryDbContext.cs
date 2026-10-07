@@ -72,6 +72,18 @@ public sealed class InventoryDbContext(DbContextOptions<InventoryDbContext> opti
         return new PagedResult<StockItem>(items, page, pageSize, total);
     }
 
+    public async Task<StockTotals> GetStockTotalsAsync(CancellationToken cancellationToken)
+        // The tenant query filter leaves at most one group, so this is a single aggregate row.
+        => await StockItems
+            .GroupBy(s => EF.Property<Guid>(s, TenantIdProperty))
+            .Select(g => new StockTotals(
+                g.Count(),
+                g.Sum(s => (long)s.QuantityOnHand),
+                g.Sum(s => (long)s.QuantityReserved),
+                g.Count(s => s.QuantityOnHand - s.QuantityReserved <= 0)))
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? new StockTotals(0, 0, 0, 0);
+
     public Task<StockReservation?> FindReservationByOrderAsync(Guid orderId, CancellationToken cancellationToken)
         => StockReservations.FirstOrDefaultAsync(r => r.OrderId == orderId, cancellationToken);
 }
