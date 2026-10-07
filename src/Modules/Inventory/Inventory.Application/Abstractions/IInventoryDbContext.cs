@@ -25,9 +25,15 @@ public interface IInventoryDbContext
 
     Task<PagedResult<StockItem>> ListAsync(int? maxAvailable, int page, int pageSize, CancellationToken cancellationToken);
 
+    /// <summary>Totals over every stock item; all zeros when the tenant has none.</summary>
+    Task<StockTotals> GetStockTotalsAsync(CancellationToken cancellationToken);
+
     Task<StockReservation?> FindReservationByOrderAsync(Guid orderId, CancellationToken cancellationToken);
 
     IOutboxWriter Outbox { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
+
+/// <param name="OutOfStockCount">Stock items with no units available (on hand minus reserved).</param>
+public sealed record StockTotals(int SkuCount, long QuantityOnHand, long QuantityReserved, int OutOfStockCount);

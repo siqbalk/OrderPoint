@@ -31,6 +31,7 @@ public sealed class TenantIsolationTests(PlatformFixture fixture)
         Assert.Equal(HttpStatusCode.NotFound, (await globex.GetAsync($"/api/sales/orders/{acmeOrder.Id}")).StatusCode);
         Assert.Equal(0, (await globex.GetAsync<Paged<ProductView>>("/api/catalog/products")).TotalCount);
         Assert.Equal(0, (await globex.GetAsync<Paged<OrderView>>("/api/sales/orders")).TotalCount);
+        Assert.Equal(0, (await globex.GetAsync<StockSummaryView>("/api/inventory/summary")).SkuCount);
         Assert.Equal(HttpStatusCode.NotFound, (await globex.PostAsync($"/api/sales/orders/{acmeOrder.Id}/cancel", null)).StatusCode);
 
         // …cannot order against Acme's catalog…
