@@ -25,9 +25,15 @@ public sealed class NotificationsDbContext(DbContextOptions<NotificationsDbConte
     public Task<Notification?> FindByIdAsync(Guid notificationId, CancellationToken cancellationToken)
         => Notifications.AsNoTracking().FirstOrDefaultAsync(n => n.Id == notificationId, cancellationToken);
 
-    public async Task<PagedResult<Notification>> ListAsync(int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<PagedResult<Notification>> ListAsync(string? recipient, int page, int pageSize, CancellationToken cancellationToken)
     {
         var query = Notifications.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(recipient))
+        {
+            var normalized = recipient.Trim().ToLowerInvariant();
+            query = query.Where(n => n.Recipient.ToLower() == normalized);
+        }
+
         var total = await query.CountAsync(cancellationToken);
         var items = await query
             .OrderByDescending(n => n.SentOnUtc)

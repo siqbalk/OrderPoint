@@ -80,6 +80,12 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
         Assert.Contains(notifications.Items, n => n.Recipient == tenant.OwnerEmail && n.Subject.StartsWith("Welcome"));
         Assert.Contains(notifications.Items, n => n.Recipient == "ada@example.com" && n.Subject.EndsWith("confirmed"));
         Assert.Contains(notifications.Items, n => n.Recipient == "ada@example.com" && n.Subject.EndsWith("cancelled"));
+
+        // Filtering by recipient is case-insensitive and excludes the owner's welcome email.
+        var toAda = await api.GetAsync<Paged<NotificationView>>("/api/notifications?recipient=%20ADA@Example.com%20");
+        Assert.Equal(2, toAda.TotalCount);
+        Assert.All(toAda.Items, n => Assert.Equal("ada@example.com", n.Recipient));
+        Assert.Empty((await api.GetAsync<Paged<NotificationView>>("/api/notifications?recipient=nobody@example.com")).Items);
     }
 
     [Fact]

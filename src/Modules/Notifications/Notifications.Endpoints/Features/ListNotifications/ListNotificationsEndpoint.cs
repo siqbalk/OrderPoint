@@ -14,12 +14,15 @@ public static class ListNotificationsEndpoint
 {
     public static void MapListNotifications(this IEndpointRouteBuilder app)
     {
-        app.MapGet("", async (int? page, int? pageSize, ISender sender, CancellationToken cancellationToken) =>
+        app.MapGet("", async (string? recipient, int? page, int? pageSize, ISender sender, CancellationToken cancellationToken) =>
         {
-            var result = await sender.Send(new ListNotificationsQuery(page ?? 1, pageSize ?? Paging.DefaultPageSize), cancellationToken);
+            var result = await sender.Send(
+                new ListNotificationsQuery(recipient, page ?? 1, pageSize ?? Paging.DefaultPageSize),
+                cancellationToken);
             return result.ToHttpResult(Results.Ok);
         })
         .WithName("ListNotifications")
+        .WithSummary("Sent notifications, newest first, optionally only those sent to one recipient")
         .Produces<PagedResult<NotificationResponse>>()
         .RequireAuthorization(NotificationsPermissions.NotificationsRead);
     }

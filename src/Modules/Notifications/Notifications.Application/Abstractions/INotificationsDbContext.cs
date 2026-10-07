@@ -11,7 +11,8 @@ public interface INotificationsDbContext
 
     Task<Notification?> FindByIdAsync(Guid notificationId, CancellationToken cancellationToken);
 
-    Task<PagedResult<Notification>> ListAsync(int page, int pageSize, CancellationToken cancellationToken);
+    /// <param name="recipient">When set, only notifications sent to this address (case-insensitive exact match).</param>
+    Task<PagedResult<Notification>> ListAsync(string? recipient, int page, int pageSize, CancellationToken cancellationToken);
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
