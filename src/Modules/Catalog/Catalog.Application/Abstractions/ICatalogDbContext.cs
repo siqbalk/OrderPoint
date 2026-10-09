@@ -17,7 +17,9 @@ public interface ICatalogDbContext
 
     Task<int> CountProductsAsync(CancellationToken cancellationToken);
 
-    Task<PagedResult<Product>> ListAsync(string? search, bool includeInactive, int page, int pageSize, CancellationToken cancellationToken);
+    /// <summary>Price bounds are inclusive; a null bound is not applied.</summary>
+    Task<PagedResult<Product>> ListAsync(
+        string? search, bool includeInactive, decimal? minPrice, decimal? maxPrice, int page, int pageSize, CancellationToken cancellationToken);
 
     IOutboxWriter Outbox { get; }
 

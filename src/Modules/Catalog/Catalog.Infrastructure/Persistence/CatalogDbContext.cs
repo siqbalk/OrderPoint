@@ -34,7 +34,8 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options,
     public Task<int> CountProductsAsync(CancellationToken cancellationToken)
         => Products.CountAsync(cancellationToken);
 
-    public async Task<PagedResult<Product>> ListAsync(string? search, bool includeInactive, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<PagedResult<Product>> ListAsync(
+        string? search, bool includeInactive, decimal? minPrice, decimal? maxPrice, int page, int pageSize, CancellationToken cancellationToken)
     {
         var query = Products.AsNoTracking();
 
@@ -47,6 +48,16 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options,
         {
             var pattern = $"%{EscapeLike(search.Trim())}%";
             query = query.Where(p => EF.Functions.ILike(p.Name, pattern) || EF.Functions.ILike(p.Sku, pattern));
+        }
+
+        if (minPrice is { } min)
+        {
+            query = query.Where(p => p.Price >= min);
+        }
+
+        if (maxPrice is { } max)
+        {
+            query = query.Where(p => p.Price <= max);
         }
 
         var total = await query.CountAsync(cancellationToken);
