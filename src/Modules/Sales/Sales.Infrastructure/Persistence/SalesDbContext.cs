@@ -30,12 +30,18 @@ public sealed class SalesDbContext(DbContextOptions<SalesDbContext> options, ITe
     public Task<Order?> GetOrderAsync(Guid orderId, CancellationToken cancellationToken)
         => Orders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
 
-    public async Task<PagedResult<Order>> ListOrdersAsync(OrderStatus? status, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<PagedResult<Order>> ListOrdersAsync(OrderStatus? status, string? customerEmail, int page, int pageSize, CancellationToken cancellationToken)
     {
         var query = Orders.AsNoTracking();
         if (status is { } s)
         {
             query = query.Where(o => o.Status == s);
+        }
+
+        if (!string.IsNullOrWhiteSpace(customerEmail))
+        {
+            var normalized = customerEmail.Trim().ToLowerInvariant();
+            query = query.Where(o => o.CustomerEmail.ToLower() == normalized);
         }
 
         var total = await query.CountAsync(cancellationToken);

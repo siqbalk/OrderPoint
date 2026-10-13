@@ -16,7 +16,8 @@ public interface ISalesDbContext
 
     Task<Order?> GetOrderAsync(Guid orderId, CancellationToken cancellationToken);
 
-    Task<PagedResult<Order>> ListOrdersAsync(OrderStatus? status, int page, int pageSize, CancellationToken cancellationToken);
+    /// <param name="customerEmail">When set, only orders for this address (case-insensitive exact match).</param>
+    Task<PagedResult<Order>> ListOrdersAsync(OrderStatus? status, string? customerEmail, int page, int pageSize, CancellationToken cancellationToken);
 
     /// <summary>Number of orders per status; statuses with no orders are absent.</summary>
     Task<Dictionary<OrderStatus, int>> CountOrdersByStatusAsync(CancellationToken cancellationToken);
