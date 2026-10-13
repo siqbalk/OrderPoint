@@ -115,6 +115,33 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
     }
 
     [Fact]
+    public async Task ListOrders_FiltersByCustomerEmail_CaseInsensitively()
+    {
+        var api = (await fixture.RegisterTenantAsync()).Client;
+        (await api.PostAsJsonAsync("/api/catalog/products", new { Sku = "GIZMO", Name = "Gizmo", Price = 3m })).EnsureSuccessStatusCode();
+        (await api.PostAsJsonAsync("/api/inventory/stock", new { Sku = "GIZMO", Quantity = 10 })).EnsureSuccessStatusCode();
+
+        var adas = await (await api.PostAsJsonAsync("/api/sales/orders", new
+        {
+            CustomerName = "Ada Lovelace",
+            CustomerEmail = "Ada@Example.com",
+            Lines = new[] { new { Sku = "GIZMO", Quantity = 1 } },
+        })).ReadAsync<OrderView>(HttpStatusCode.Created);
+        (await api.PostAsJsonAsync("/api/sales/orders", new
+        {
+            CustomerName = "Grace Hopper",
+            CustomerEmail = "grace@example.com",
+            Lines = new[] { new { Sku = "GIZMO", Quantity = 1 } },
+        })).EnsureSuccessStatusCode();
+
+        var forAda = await api.GetAsync<Paged<OrderView>>("/api/sales/orders?customerEmail=%20ada@example.COM%20");
+        Assert.Equal(adas.Id, Assert.Single(forAda.Items).Id);
+
+        Assert.Equal(2, (await api.GetAsync<Paged<OrderView>>("/api/sales/orders")).TotalCount);
+        Assert.Equal(0, (await api.GetAsync<Paged<OrderView>>("/api/sales/orders?customerEmail=nobody@example.com")).TotalCount);
+    }
+
+    [Fact]
     public async Task PlacingOrder_ForUnknownProduct_Fails()
     {
         var api = (await fixture.RegisterTenantAsync()).Client;
