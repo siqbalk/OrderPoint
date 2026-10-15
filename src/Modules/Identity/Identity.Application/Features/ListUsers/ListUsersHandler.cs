@@ -10,7 +10,7 @@ public sealed class ListUsersHandler(IIdentityDbContext dbContext, ITenantContex
 {
     public async Task<Result<IReadOnlyList<UserResponse>>> Handle(ListUsersQuery request, CancellationToken cancellationToken)
     {
-        var users = await dbContext.ListUsersAsync(tenantContext.RequiredTenantId, cancellationToken);
+        var users = await dbContext.ListUsersAsync(tenantContext.RequiredTenantId, request.Role, request.Status, cancellationToken);
 
         return users.Select(UserResponse.From).ToList();
     }

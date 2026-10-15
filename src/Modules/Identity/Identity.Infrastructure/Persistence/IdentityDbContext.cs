@@ -1,6 +1,7 @@
 using BuildingBlocks.MultiTenancy;
 using BuildingBlocks.Outbox;
 using BuildingBlocks.Persistence;
+using BuildingBlocks.Security;
 using Identity.Application.Abstractions;
 using Identity.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -43,9 +44,20 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
     public Task<int> CountUsersAsync(Guid tenantId, CancellationToken cancellationToken)
         => Users.CountAsync(u => u.TenantId == tenantId && u.Status != UserStatus.Disabled, cancellationToken);
 
-    public async Task<IReadOnlyList<User>> ListUsersAsync(Guid tenantId, CancellationToken cancellationToken)
-        => await Users.AsNoTracking()
-            .Where(u => u.TenantId == tenantId)
-            .OrderBy(u => u.CreatedOnUtc)
-            .ToListAsync(cancellationToken);
+    public async Task<IReadOnlyList<User>> ListUsersAsync(
+        Guid tenantId, TenantRole? role, UserStatus? status, CancellationToken cancellationToken)
+    {
+        var query = Users.AsNoTracking().Where(u => u.TenantId == tenantId);
+        if (role is { } r)
+        {
+            query = query.Where(u => u.Role == r);
+        }
+
+        if (status is { } s)
+        {
+            query = query.Where(u => u.Status == s);
+        }
+
+        return await query.OrderBy(u => u.CreatedOnUtc).ToListAsync(cancellationToken);
+    }
 }
