@@ -1,4 +1,5 @@
 using BuildingBlocks.Outbox;
+using BuildingBlocks.Security;
 using Identity.Domain;
 
 namespace Identity.Application.Abstractions;
@@ -24,7 +25,8 @@ public interface IIdentityDbContext
 
     Task<int> CountUsersAsync(Guid tenantId, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<User>> ListUsersAsync(Guid tenantId, CancellationToken cancellationToken);
+    /// <summary>The tenant's users, oldest first; a null role or status is not filtered on.</summary>
+    Task<IReadOnlyList<User>> ListUsersAsync(Guid tenantId, TenantRole? role, UserStatus? status, CancellationToken cancellationToken);
 
     IOutboxWriter Outbox { get; }
 

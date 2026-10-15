@@ -16,6 +16,11 @@ public sealed partial class IdentityAndAccessTests(PlatformFixture fixture)
         (await owner.PostAsJsonAsync("/api/identity/users/invitations", new { Email = memberEmail, DisplayName = "Mia Member", Role = "Member" }))
             .EnsureSuccessStatusCode();
 
+        var pending = await owner.GetAsync<List<UserView>>("/api/identity/users?status=Invited");
+        Assert.Equal(memberEmail, Assert.Single(pending).Email);
+        Assert.Equal("Owner", Assert.Single(await owner.GetAsync<List<UserView>>("/api/identity/users?role=Owner")).Role);
+        Assert.Empty(await owner.GetAsync<List<UserView>>("/api/identity/users?role=Admin"));
+
         // The raw token only exists in the invitation email sent by Notifications.
         var notifications = await Api.EventuallyAsync(
             () => owner.GetAsync<Paged<NotificationView>>("/api/notifications"),
@@ -44,6 +49,8 @@ public sealed partial class IdentityAndAccessTests(PlatformFixture fixture)
             (await fixture.CreateClient().PostAsJsonAsync("/api/identity/invitations/accept", new { Token = token, Password = "another password" })).StatusCode);
         (await fixture.CreateClient().PostAsJsonAsync("/api/identity/auth/login", new { Email = memberEmail, Password = "a long enough password" }))
             .EnsureSuccessStatusCode();
+
+        Assert.Empty(await owner.GetAsync<List<UserView>>("/api/identity/users?status=Invited"));
     }
 
     [Fact]
