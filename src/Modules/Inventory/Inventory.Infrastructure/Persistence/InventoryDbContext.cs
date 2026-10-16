@@ -54,9 +54,14 @@ public sealed class InventoryDbContext(DbContextOptions<InventoryDbContext> opti
             .Where(s => normalizedSkus.Contains(s.Sku))
             .ToDictionaryAsync(s => s.Sku, cancellationToken);
 
-    public async Task<PagedResult<StockItem>> ListAsync(int? maxAvailable, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<PagedResult<StockItem>> ListAsync(string? skuContains, int? maxAvailable, int page, int pageSize, CancellationToken cancellationToken)
     {
         var query = StockItems.AsNoTracking();
+        if (skuContains is not null)
+        {
+            query = query.Where(s => s.Sku.Contains(skuContains));
+        }
+
         if (maxAvailable is { } max)
         {
             query = query.Where(s => s.QuantityOnHand - s.QuantityReserved <= max);

@@ -14,13 +14,13 @@ public static class ListStockEndpoint
 {
     public static void MapListStock(this IEndpointRouteBuilder app)
     {
-        app.MapGet("", async (int? maxAvailable, int? page, int? pageSize, ISender sender, CancellationToken cancellationToken) =>
+        app.MapGet("", async (int? maxAvailable, string? search, int? page, int? pageSize, ISender sender, CancellationToken cancellationToken) =>
         {
-            var result = await sender.Send(new ListStockQuery(maxAvailable, page ?? 1, pageSize ?? Paging.DefaultPageSize), cancellationToken);
+            var result = await sender.Send(new ListStockQuery(maxAvailable, search, page ?? 1, pageSize ?? Paging.DefaultPageSize), cancellationToken);
             return result.ToHttpResult(Results.Ok);
         })
         .WithName("ListStock")
-        .WithSummary("Stock levels, optionally only SKUs at or below a low-stock threshold")
+        .WithSummary("Stock levels, optionally only SKUs matching a search or at or below a low-stock threshold")
         .Produces<PagedResult<StockItemResponse>>()
         .RequireAuthorization(InventoryPermissions.StockRead);
     }

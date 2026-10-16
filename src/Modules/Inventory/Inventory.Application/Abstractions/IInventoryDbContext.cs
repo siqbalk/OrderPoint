@@ -23,7 +23,8 @@ public interface IInventoryDbContext
     /// <summary>Stock items for the given SKUs, keyed by normalised SKU, loaded for update.</summary>
     Task<Dictionary<string, StockItem>> FindBySkusAsync(IReadOnlyCollection<string> normalizedSkus, CancellationToken cancellationToken);
 
-    Task<PagedResult<StockItem>> ListAsync(int? maxAvailable, int page, int pageSize, CancellationToken cancellationToken);
+    /// <param name="skuContains">When set, only SKUs containing this already-normalised text.</param>
+    Task<PagedResult<StockItem>> ListAsync(string? skuContains, int? maxAvailable, int page, int pageSize, CancellationToken cancellationToken);
 
     /// <summary>Totals over every stock item; all zeros when the tenant has none.</summary>
     Task<StockTotals> GetStockTotalsAsync(CancellationToken cancellationToken);
