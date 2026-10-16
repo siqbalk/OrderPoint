@@ -115,6 +115,27 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
     }
 
     [Fact]
+    public async Task ListStock_SearchesSkus_CaseInsensitively_AndLiterally()
+    {
+        var api = (await fixture.RegisterTenantAsync()).Client;
+        foreach (var (sku, quantity) in new[] { ("WIDGET-1", 1), ("WIDGET-2", 50), ("GADGET_1", 1) })
+        {
+            (await api.PostAsJsonAsync("/api/inventory/stock", new { Sku = sku, Quantity = quantity })).EnsureSuccessStatusCode();
+        }
+
+        var widgets = await api.GetAsync<Paged<StockView>>("/api/inventory/stock?search=%20widg%20");
+        Assert.Equal(["WIDGET-1", "WIDGET-2"], widgets.Items.Select(s => s.Sku));
+
+        // "_" and "%" are plain characters here, not SQL wildcards.
+        Assert.Equal("GADGET_1", Assert.Single((await api.GetAsync<Paged<StockView>>("/api/inventory/stock?search=_")).Items).Sku);
+        Assert.Empty((await api.GetAsync<Paged<StockView>>("/api/inventory/stock?search=%25")).Items);
+
+        // Combines with the low-stock filter.
+        var lowWidgets = await api.GetAsync<Paged<StockView>>("/api/inventory/stock?search=widget&maxAvailable=5");
+        Assert.Equal("WIDGET-1", Assert.Single(lowWidgets.Items).Sku);
+    }
+
+    [Fact]
     public async Task ListOrders_FiltersByCustomerEmail_CaseInsensitively()
     {
         var api = (await fixture.RegisterTenantAsync()).Client;
