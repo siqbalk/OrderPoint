@@ -17,7 +17,16 @@ public interface ISalesDbContext
     Task<Order?> GetOrderAsync(Guid orderId, CancellationToken cancellationToken);
 
     /// <param name="customerEmail">When set, only orders for this address (case-insensitive exact match).</param>
-    Task<PagedResult<Order>> ListOrdersAsync(OrderStatus? status, string? customerEmail, int page, int pageSize, CancellationToken cancellationToken);
+    /// <param name="placedFromUtc">When set, only orders placed at or after this instant.</param>
+    /// <param name="placedBeforeUtc">When set, only orders placed strictly before this instant.</param>
+    Task<PagedResult<Order>> ListOrdersAsync(
+        OrderStatus? status,
+        string? customerEmail,
+        DateTimeOffset? placedFromUtc,
+        DateTimeOffset? placedBeforeUtc,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
 
     /// <summary>Number of orders per status; statuses with no orders are absent.</summary>
     Task<Dictionary<OrderStatus, int>> CountOrdersByStatusAsync(CancellationToken cancellationToken);

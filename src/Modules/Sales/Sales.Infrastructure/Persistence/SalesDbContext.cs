@@ -30,7 +30,14 @@ public sealed class SalesDbContext(DbContextOptions<SalesDbContext> options, ITe
     public Task<Order?> GetOrderAsync(Guid orderId, CancellationToken cancellationToken)
         => Orders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
 
-    public async Task<PagedResult<Order>> ListOrdersAsync(OrderStatus? status, string? customerEmail, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<PagedResult<Order>> ListOrdersAsync(
+        OrderStatus? status,
+        string? customerEmail,
+        DateTimeOffset? placedFromUtc,
+        DateTimeOffset? placedBeforeUtc,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
     {
         var query = Orders.AsNoTracking();
         if (status is { } s)
@@ -42,6 +49,16 @@ public sealed class SalesDbContext(DbContextOptions<SalesDbContext> options, ITe
         {
             var normalized = customerEmail.Trim().ToLowerInvariant();
             query = query.Where(o => o.CustomerEmail.ToLower() == normalized);
+        }
+
+        if (placedFromUtc is { } fromUtc)
+        {
+            query = query.Where(o => o.PlacedOnUtc >= fromUtc);
+        }
+
+        if (placedBeforeUtc is { } beforeUtc)
+        {
+            query = query.Where(o => o.PlacedOnUtc < beforeUtc);
         }
 
         var total = await query.CountAsync(cancellationToken);

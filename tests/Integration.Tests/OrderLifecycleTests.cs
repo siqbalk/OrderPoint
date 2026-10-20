@@ -163,6 +163,28 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
     }
 
     [Fact]
+    public async Task ListOrders_FiltersByPlacedDateRange()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var api = (await fixture.RegisterTenantAsync()).Client;
+        (await api.PostAsJsonAsync("/api/catalog/products", new { Sku = "DOOHICKEY", Name = "Doohickey", Price = 4m })).EnsureSuccessStatusCode();
+        (await api.PostAsJsonAsync("/api/inventory/stock", new { Sku = "DOOHICKEY", Quantity = 10 })).EnsureSuccessStatusCode();
+        var placed = await (await api.PostAsJsonAsync("/api/sales/orders", new
+        {
+            CustomerName = "Ada Lovelace",
+            CustomerEmail = "ada@example.com",
+            Lines = new[] { new { Sku = "DOOHICKEY", Quantity = 1 } },
+        })).ReadAsync<OrderView>(HttpStatusCode.Created);
+
+        var fromToday = await api.GetAsync<Paged<OrderView>>($"/api/sales/orders?from={today:yyyy-MM-dd}");
+        Assert.Equal(placed.Id, Assert.Single(fromToday.Items).Id);
+        Assert.Equal(0, (await api.GetAsync<Paged<OrderView>>($"/api/sales/orders?to={today.AddDays(-1):yyyy-MM-dd}")).TotalCount);
+
+        var inverted = await api.GetAsync($"/api/sales/orders?from={today:yyyy-MM-dd}&to={today.AddDays(-1):yyyy-MM-dd}");
+        Assert.Equal(HttpStatusCode.BadRequest, inverted.StatusCode);
+    }
+
+    [Fact]
     public async Task PlacingOrder_ForUnknownProduct_Fails()
     {
         var api = (await fixture.RegisterTenantAsync()).Client;
