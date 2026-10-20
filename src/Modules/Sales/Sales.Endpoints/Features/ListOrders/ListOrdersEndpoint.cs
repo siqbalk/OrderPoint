@@ -15,13 +15,23 @@ public static class ListOrdersEndpoint
 {
     public static void MapListOrders(this IEndpointRouteBuilder app)
     {
-        app.MapGet("", async (OrderStatus? status, string? customerEmail, int? page, int? pageSize, ISender sender, CancellationToken cancellationToken) =>
+        app.MapGet("", async (
+            OrderStatus? status,
+            string? customerEmail,
+            DateOnly? from,
+            DateOnly? to,
+            int? page,
+            int? pageSize,
+            ISender sender,
+            CancellationToken cancellationToken) =>
         {
-            var result = await sender.Send(new ListOrdersQuery(status, customerEmail, page ?? 1, pageSize ?? Paging.DefaultPageSize), cancellationToken);
+            var result = await sender.Send(
+                new ListOrdersQuery(status, customerEmail, from, to, page ?? 1, pageSize ?? Paging.DefaultPageSize),
+                cancellationToken);
             return result.ToHttpResult(Results.Ok);
         })
         .WithName("ListOrders")
-        .WithSummary("Orders, newest first, optionally filtered by status and customer email")
+        .WithSummary("Orders, newest first, optionally filtered by status, customer email and placed date range (UTC, inclusive)")
         .Produces<PagedResult<OrderSummaryResponse>>()
         .RequireAuthorization(SalesPermissions.OrdersRead);
     }
