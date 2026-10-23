@@ -89,6 +89,8 @@ internal sealed record Paged<T>(List<T> Items, int Page, int PageSize, int Total
 
 internal sealed record ProductView(Guid Id, string Sku, string Name, decimal Price, bool IsActive);
 
+internal sealed record ProductQuotaView(string? Plan, int Used, int? MaxProducts, int? Remaining);
+
 internal sealed record StockView(Guid Id, string Sku, int QuantityOnHand, int QuantityReserved, int QuantityAvailable);
 
 internal sealed record StockSummaryView(int SkuCount, long QuantityOnHand, long QuantityReserved, long QuantityAvailable, int OutOfStockCount);
