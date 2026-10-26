@@ -1,4 +1,5 @@
 using Inventory.Application.Abstractions;
+using Inventory.Application.Features;
 using Inventory.Application.Features.GetReservationByOrder;
 using Inventory.Domain;
 using NSubstitute;

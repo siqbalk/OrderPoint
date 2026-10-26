@@ -31,6 +31,10 @@ public interface IInventoryDbContext
 
     Task<StockReservation?> FindReservationByOrderAsync(Guid orderId, CancellationToken cancellationToken);
 
+    /// <param name="normalizedSku">When set, only reservations with a line for this SKU.</param>
+    Task<PagedResult<StockReservation>> ListReservationsAsync(
+        ReservationStatus? status, string? normalizedSku, int page, int pageSize, CancellationToken cancellationToken);
+
     IOutboxWriter Outbox { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
