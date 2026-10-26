@@ -91,4 +91,29 @@ public sealed class InventoryDbContext(DbContextOptions<InventoryDbContext> opti
 
     public Task<StockReservation?> FindReservationByOrderAsync(Guid orderId, CancellationToken cancellationToken)
         => StockReservations.FirstOrDefaultAsync(r => r.OrderId == orderId, cancellationToken);
+
+    public async Task<PagedResult<StockReservation>> ListReservationsAsync(
+        ReservationStatus? status, string? normalizedSku, int page, int pageSize, CancellationToken cancellationToken)
+    {
+        var query = StockReservations.AsNoTracking();
+        if (status is { } s)
+        {
+            query = query.Where(r => r.Status == s);
+        }
+
+        if (normalizedSku is not null)
+        {
+            query = query.Where(r => r.Lines.Any(l => l.Sku == normalizedSku));
+        }
+
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(r => r.CreatedOnUtc)
+            .ThenBy(r => r.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return new PagedResult<StockReservation>(items, page, pageSize, total);
+    }
 }

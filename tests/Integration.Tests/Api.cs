@@ -93,6 +93,8 @@ internal sealed record ProductQuotaView(string? Plan, int Used, int? MaxProducts
 
 internal sealed record StockView(Guid Id, string Sku, int QuantityOnHand, int QuantityReserved, int QuantityAvailable);
 
+internal sealed record ReservationView(Guid Id, Guid OrderId, string Status);
+
 internal sealed record StockSummaryView(int SkuCount, long QuantityOnHand, long QuantityReserved, long QuantityAvailable, int OutOfStockCount);
 
 internal sealed record OrderView(Guid Id, string Status, decimal Total, string? RejectionReason, List<OrderLineView> Lines);

@@ -51,6 +51,10 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
         Assert.Equal(93, reserved.QuantityAvailable);
         Assert.Equal(new StockSummaryView(1, 100, 7, 93, 0), await api.GetAsync<StockSummaryView>("/api/inventory/summary"));
 
+        var holding = await api.GetAsync<Paged<ReservationView>>("/api/inventory/reservations?status=Active&sku=widget-1");
+        Assert.Equal(placed.Id, Assert.Single(holding.Items).OrderId);
+        Assert.Empty((await api.GetAsync<Paged<ReservationView>>("/api/inventory/reservations?sku=OTHER")).Items);
+
         await Api.EventuallyAsync(
             () => api.GetAsync<SalesReportView>("/api/reporting/sales"),
             r => r is { ConfirmedOrders: 1, Revenue: 87.50m, ItemsSold: 7 },
@@ -67,6 +71,9 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
             () => api.GetAsync<StockView>("/api/inventory/stock/WIDGET-1"),
             s => s.QuantityReserved == 0 && s.QuantityAvailable == 100,
             "Inventory released the reservation");
+        Assert.Empty((await api.GetAsync<Paged<ReservationView>>("/api/inventory/reservations?status=Active")).Items);
+        var released = Assert.Single((await api.GetAsync<Paged<ReservationView>>("/api/inventory/reservations?status=Released")).Items);
+        Assert.Equal(placed.Id, released.OrderId);
 
         await Api.EventuallyAsync(
             () => api.GetAsync<SalesReportView>("/api/reporting/sales"),

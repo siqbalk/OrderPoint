@@ -10,6 +10,7 @@ using Inventory.Endpoints.Features.AdjustStock;
 using Inventory.Endpoints.Features.GetReservationByOrder;
 using Inventory.Endpoints.Features.GetStockBySku;
 using Inventory.Endpoints.Features.GetStockSummary;
+using Inventory.Endpoints.Features.ListReservations;
 using Inventory.Endpoints.Features.ListStock;
 using Inventory.Infrastructure.InternalServices;
 using Inventory.Infrastructure.Persistence;
@@ -55,6 +56,7 @@ public sealed class InventoryModule : IModule
         var reservations = endpoints.MapGroup("/api/inventory/reservations").WithTags("Inventory");
 
         reservations.MapGetReservationByOrder();
+        reservations.MapListReservations();
 
         // Not under /stock, where "summary" would shadow a SKU of that name.
         var summary = endpoints.MapGroup("/api/inventory/summary").WithTags("Inventory");
