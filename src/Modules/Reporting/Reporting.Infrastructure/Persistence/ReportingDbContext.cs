@@ -45,4 +45,24 @@ public sealed class ReportingDbContext(DbContextOptions<ReportingDbContext> opti
             .Take(limit)
             .Select(r => new TopOrderRow(r.OrderId, r.ConfirmedOnUtc, r.Total, r.ItemCount))
             .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<MonthlySalesRow>> GetMonthlySalesAsync(int year, CancellationToken cancellationToken)
+    {
+        // A date range rather than ConfirmedOnDate.Year, so the (TenantId, ConfirmedOnDate) index applies.
+        var from = new DateOnly(year, 1, 1);
+        var to = new DateOnly(year, 12, 31);
+
+        return await SalesRecords
+            .AsNoTracking()
+            .Where(r => r.ConfirmedOnDate >= from && r.ConfirmedOnDate <= to)
+            .GroupBy(r => r.ConfirmedOnDate.Month)
+            .OrderBy(g => g.Key)
+            .Select(g => new MonthlySalesRow(
+                g.Key,
+                g.Count(),
+                g.Sum(r => r.IsCancelled ? 1 : 0),
+                g.Sum(r => r.IsCancelled ? 0m : r.Total),
+                g.Sum(r => r.IsCancelled ? 0 : r.ItemCount)))
+            .ToListAsync(cancellationToken);
+    }
 }

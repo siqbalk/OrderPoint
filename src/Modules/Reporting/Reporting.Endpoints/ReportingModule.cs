@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Reporting.Application.Abstractions;
 using Reporting.Contracts;
+using Reporting.Endpoints.Features.GetMonthlySales;
 using Reporting.Endpoints.Features.GetSalesReport;
 using Reporting.Endpoints.Features.GetTopOrders;
 using Reporting.Infrastructure.Persistence;
@@ -40,5 +41,6 @@ public sealed class ReportingModule : IModule
 
         group.MapGetSalesReport();
         group.MapGetTopOrders();
+        group.MapGetMonthlySales();
     }
 }

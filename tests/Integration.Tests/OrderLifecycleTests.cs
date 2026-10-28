@@ -63,6 +63,14 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
         var top = await api.GetAsync<TopOrdersView>("/api/reporting/sales/top-orders");
         Assert.Equal(new TopOrderView(placed.Id, 87.50m, 7), Assert.Single(top.Orders));
 
+        var monthly = await api.GetAsync<MonthlySalesView>("/api/reporting/sales/monthly");
+        Assert.Equal(DateTime.UtcNow.Year, monthly.Year);
+        Assert.Equal(Enumerable.Range(1, 12), monthly.Months.Select(m => m.Month));
+        Assert.Equal(new MonthlySalesRowView(DateTime.UtcNow.Month, 1, 0, 87.50m, 7), monthly.Months.Single(m => m.ConfirmedOrders > 0));
+        Assert.Equal((87.50m, 1, 7), (monthly.Revenue, monthly.ConfirmedOrders, monthly.ItemsSold));
+        Assert.Equal(0, (await api.GetAsync<MonthlySalesView>($"/api/reporting/sales/monthly?year={DateTime.UtcNow.Year - 1}")).ConfirmedOrders);
+        Assert.Equal(HttpStatusCode.BadRequest, (await api.GetAsync("/api/reporting/sales/monthly?year=1999")).StatusCode);
+
         // Cancel: the compensating path.
         var cancelled = await (await api.PostAsync($"/api/sales/orders/{placed.Id}/cancel", null)).ReadAsync<OrderView>();
         Assert.Equal("Cancelled", cancelled.Status);
@@ -80,6 +88,8 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
             r => r is { CancelledOrders: 1, Revenue: 0m },
             "Reporting reversed the cancelled revenue");
         Assert.Empty((await api.GetAsync<TopOrdersView>("/api/reporting/sales/top-orders")).Orders);
+        var monthlyAfterCancel = await api.GetAsync<MonthlySalesView>("/api/reporting/sales/monthly");
+        Assert.Equal((0m, 1, 1, 0), (monthlyAfterCancel.Revenue, monthlyAfterCancel.ConfirmedOrders, monthlyAfterCancel.CancelledOrders, monthlyAfterCancel.ItemsSold));
 
         var notifications = await Api.EventuallyAsync(
             () => api.GetAsync<Paged<NotificationView>>("/api/notifications"),
