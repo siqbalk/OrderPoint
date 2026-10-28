@@ -43,6 +43,7 @@ public sealed partial class IdentityAndAccessTests(PlatformFixture fixture)
             (await member.PostAsJsonAsync("/api/catalog/products", new { Sku = "X", Name = "X", Price = 1m })).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await member.GetAsync("/api/reporting/sales")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await member.GetAsync("/api/reporting/sales/top-orders")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await member.GetAsync("/api/reporting/sales/monthly")).StatusCode);
 
         // The invitation is single-use; the member can now sign in with their password.
         Assert.Equal(HttpStatusCode.NotFound,

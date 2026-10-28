@@ -103,6 +103,10 @@ internal sealed record OrderLineView(string Sku, string ProductName, int Quantit
 
 internal sealed record SalesReportView(decimal Revenue, int ConfirmedOrders, int CancelledOrders, int ItemsSold);
 
+internal sealed record MonthlySalesView(int Year, decimal Revenue, int ConfirmedOrders, int CancelledOrders, int ItemsSold, List<MonthlySalesRowView> Months);
+
+internal sealed record MonthlySalesRowView(int Month, int ConfirmedOrders, int CancelledOrders, decimal Revenue, int ItemsSold);
+
 internal sealed record TopOrdersView(IReadOnlyList<TopOrderView> Orders);
 
 internal sealed record TopOrderView(Guid OrderId, decimal Total, int ItemCount);
