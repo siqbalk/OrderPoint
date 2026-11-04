@@ -81,6 +81,21 @@ public sealed class User
         return Result.Success();
     }
 
+    /// <summary>
+    /// Stops the user signing in and frees their seat on the plan; a pending
+    /// invitation can no longer be accepted. Disabling twice is a no-op.
+    /// </summary>
+    public Result Disable()
+    {
+        if (Role == TenantRole.Owner)
+            return Result.Failure(Error.Conflict("Identity.CannotDisableOwner", "The organisation's owner cannot be disabled."));
+
+        Status = UserStatus.Disabled;
+        InvitationTokenHash = null;
+        InvitationExpiresOnUtc = null;
+        return Result.Success();
+    }
+
     public void RecordLogin(DateTimeOffset now) => LastLoginOnUtc = now;
 }
 
