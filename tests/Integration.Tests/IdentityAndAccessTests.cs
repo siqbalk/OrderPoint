@@ -52,6 +52,36 @@ public sealed partial class IdentityAndAccessTests(PlatformFixture fixture)
             .EnsureSuccessStatusCode();
 
         Assert.Empty(await owner.GetAsync<List<UserView>>("/api/identity/users?status=Invited"));
+
+        // Only admins can disable users; once disabled, the member can no longer sign in.
+        Assert.Equal(HttpStatusCode.Forbidden, (await member.PostAsync($"/api/identity/users/{me.UserId}/disable", null)).StatusCode);
+        var disabled = await (await owner.PostAsync($"/api/identity/users/{me.UserId}/disable", null)).ReadAsync<UserView>();
+        Assert.Equal("Disabled", disabled.Status);
+        Assert.Equal(HttpStatusCode.Unauthorized,
+            (await fixture.CreateClient().PostAsJsonAsync("/api/identity/auth/login", new { Email = memberEmail, Password = "a long enough password" })).StatusCode);
+    }
+
+    [Fact]
+    public async Task DisablingAPendingInvitation_FreesItsSeat_ButYouCannotDisableYourself()
+    {
+        var owner = (await fixture.RegisterTenantAsync()).Client;
+
+        async Task<HttpResponseMessage> Invite() => await owner.PostAsJsonAsync("/api/identity/users/invitations",
+            new { Email = $"user-{Guid.NewGuid():N}@example.com", DisplayName = "Someone", Role = "Member" });
+
+        // Free plan: 3 users including the owner.
+        var first = await (await Invite()).ReadAsync<InvitationView>(HttpStatusCode.Accepted);
+        Assert.Equal(HttpStatusCode.Accepted, (await Invite()).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await Invite()).StatusCode);
+
+        (await owner.PostAsync($"/api/identity/users/{first.UserId}/disable", null)).EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.Accepted, (await Invite()).StatusCode);
+
+        var me = await owner.GetAsync<MeView>("/api/identity/me");
+        var self = await owner.PostAsync($"/api/identity/users/{me.UserId}/disable", null);
+        Assert.Equal(HttpStatusCode.Conflict, self.StatusCode);
+        Assert.Equal("Identity.CannotDisableSelf", await self.ErrorCodeAsync());
+        Assert.Equal(HttpStatusCode.NotFound, (await owner.PostAsync($"/api/identity/users/{Guid.NewGuid()}/disable", null)).StatusCode);
     }
 
     [Fact]

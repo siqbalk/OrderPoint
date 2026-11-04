@@ -113,6 +113,8 @@ internal sealed record TopOrderView(Guid OrderId, decimal Total, int ItemCount);
 
 internal sealed record NotificationView(Guid Id, string Recipient, string Subject, string Body);
 
+internal sealed record InvitationView(Guid UserId, string Email);
+
 internal sealed record UserView(Guid Id, string Email, string DisplayName, string Role, string Status);
 
 internal sealed record MeView(Guid UserId, string Email, string Role, MeTenantView Tenant, List<string> Permissions);

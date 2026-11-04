@@ -7,6 +7,7 @@ using Identity.Contracts;
 using Identity.Contracts.IntegrationEvents;
 using Identity.Endpoints.Features.AcceptInvitation;
 using Identity.Endpoints.Features.ChangePlan;
+using Identity.Endpoints.Features.DisableUser;
 using Identity.Endpoints.Features.GetCurrentUser;
 using Identity.Endpoints.Features.GetUser;
 using Identity.Endpoints.Features.InviteUser;
@@ -65,6 +66,7 @@ public sealed class IdentityModule : IModule
         group.MapListUsers();
         group.MapGetUser();
         group.MapInviteUser();
+        group.MapDisableUser();
         group.MapChangePlan();
     }
 }
