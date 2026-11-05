@@ -59,6 +59,12 @@ public sealed partial class IdentityAndAccessTests(PlatformFixture fixture)
         Assert.Equal("Disabled", disabled.Status);
         Assert.Equal(HttpStatusCode.Unauthorized,
             (await fixture.CreateClient().PostAsJsonAsync("/api/identity/auth/login", new { Email = memberEmail, Password = "a long enough password" })).StatusCode);
+
+        // Re-enabling restores their access with the same password.
+        var enabled = await (await owner.PostAsync($"/api/identity/users/{me.UserId}/enable", null)).ReadAsync<UserView>();
+        Assert.Equal("Active", enabled.Status);
+        (await fixture.CreateClient().PostAsJsonAsync("/api/identity/auth/login", new { Email = memberEmail, Password = "a long enough password" }))
+            .EnsureSuccessStatusCode();
     }
 
     [Fact]
@@ -76,6 +82,11 @@ public sealed partial class IdentityAndAccessTests(PlatformFixture fixture)
 
         (await owner.PostAsync($"/api/identity/users/{first.UserId}/disable", null)).EnsureSuccessStatusCode();
         Assert.Equal(HttpStatusCode.Accepted, (await Invite()).StatusCode);
+
+        // A revoked invitation has no account behind it to re-enable.
+        var reenable = await owner.PostAsync($"/api/identity/users/{first.UserId}/enable", null);
+        Assert.Equal(HttpStatusCode.Conflict, reenable.StatusCode);
+        Assert.Equal("Identity.InvitationNeverAccepted", await reenable.ErrorCodeAsync());
 
         var me = await owner.GetAsync<MeView>("/api/identity/me");
         var self = await owner.PostAsync($"/api/identity/users/{me.UserId}/disable", null);
