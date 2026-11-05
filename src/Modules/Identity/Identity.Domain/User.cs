@@ -96,6 +96,28 @@ public sealed class User
         return Result.Success();
     }
 
+    /// <summary>
+    /// Restores a disabled user's access. Enabling an active user is a no-op.
+    /// A user disabled before accepting their invitation has no password, so
+    /// there is no account to restore.
+    /// </summary>
+    public Result Enable()
+    {
+        if (Status == UserStatus.Active)
+            return Result.Success();
+
+        if (Status != UserStatus.Disabled)
+            return Result.Failure(Error.Conflict("Identity.UserNotDisabled", "Only a disabled user can be enabled."));
+
+        if (PasswordHash is null)
+            return Result.Failure(Error.Conflict(
+                "Identity.InvitationNeverAccepted",
+                "This user never accepted their invitation, so there is no account to enable."));
+
+        Status = UserStatus.Active;
+        return Result.Success();
+    }
+
     public void RecordLogin(DateTimeOffset now) => LastLoginOnUtc = now;
 }
 
