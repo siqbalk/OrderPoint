@@ -11,7 +11,7 @@ public sealed class ListProductsHandler(ICatalogDbContext dbContext)
     public async Task<Result<PagedResult<ProductResponse>>> Handle(ListProductsQuery request, CancellationToken cancellationToken)
     {
         var page = await dbContext.ListAsync(
-            request.Search, request.IncludeInactive, request.MinPrice, request.MaxPrice, request.Page, request.PageSize, cancellationToken);
+            request.Search, request.IncludeInactive, request.MinPrice, request.MaxPrice, request.Sort, request.Page, request.PageSize, cancellationToken);
         return page.Map(ProductResponse.From);
     }
 }

@@ -3,6 +3,7 @@ using BuildingBlocks.Outbox;
 using BuildingBlocks.Pagination;
 using BuildingBlocks.Persistence;
 using Catalog.Application.Abstractions;
+using Catalog.Application.Features.ListProducts;
 using Catalog.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,7 +36,14 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options,
         => Products.CountAsync(cancellationToken);
 
     public async Task<PagedResult<Product>> ListAsync(
-        string? search, bool includeInactive, decimal? minPrice, decimal? maxPrice, int page, int pageSize, CancellationToken cancellationToken)
+        string? search,
+        bool includeInactive,
+        decimal? minPrice,
+        decimal? maxPrice,
+        ProductSort sort,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
     {
         var query = Products.AsNoTracking();
 
@@ -61,8 +69,14 @@ public sealed class CatalogDbContext(DbContextOptions<CatalogDbContext> options,
         }
 
         var total = await query.CountAsync(cancellationToken);
-        var items = await query
-            .OrderBy(p => p.Name)
+        var ordered = sort switch
+        {
+            ProductSort.PriceAscending => query.OrderBy(p => p.Price).ThenBy(p => p.Name),
+            ProductSort.PriceDescending => query.OrderByDescending(p => p.Price).ThenBy(p => p.Name),
+            ProductSort.Newest => query.OrderByDescending(p => p.CreatedOnUtc).ThenBy(p => p.Name),
+            _ => query.OrderBy(p => p.Name),
+        };
+        var items = await ordered
             .ThenBy(p => p.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

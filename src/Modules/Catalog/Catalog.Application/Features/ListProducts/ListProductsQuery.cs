@@ -6,11 +6,13 @@ namespace Catalog.Application.Features.ListProducts;
 
 /// <param name="MinPrice">When set, only products priced at or above this.</param>
 /// <param name="MaxPrice">When set, only products priced at or below this.</param>
+/// <param name="Sort">Defaults to alphabetical by name.</param>
 public sealed record ListProductsQuery(
     string? Search,
     bool IncludeInactive,
     decimal? MinPrice = null,
     decimal? MaxPrice = null,
+    ProductSort Sort = ProductSort.Name,
     int Page = 1,
     int PageSize = Paging.DefaultPageSize)
     : IRequest<Result<PagedResult<ProductResponse>>>;
