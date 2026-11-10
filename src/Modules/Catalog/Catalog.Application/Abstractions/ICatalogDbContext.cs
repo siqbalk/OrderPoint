@@ -1,5 +1,6 @@
 using BuildingBlocks.Outbox;
 using BuildingBlocks.Pagination;
+using Catalog.Application.Features.ListProducts;
 using Catalog.Domain;
 
 namespace Catalog.Application.Abstractions;
@@ -19,7 +20,14 @@ public interface ICatalogDbContext
 
     /// <summary>Price bounds are inclusive; a null bound is not applied.</summary>
     Task<PagedResult<Product>> ListAsync(
-        string? search, bool includeInactive, decimal? minPrice, decimal? maxPrice, int page, int pageSize, CancellationToken cancellationToken);
+        string? search,
+        bool includeInactive,
+        decimal? minPrice,
+        decimal? maxPrice,
+        ProductSort sort,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
 
     IOutboxWriter Outbox { get; }
 
