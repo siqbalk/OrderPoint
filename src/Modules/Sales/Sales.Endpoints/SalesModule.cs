@@ -11,6 +11,7 @@ using Sales.Application.Abstractions;
 using Sales.Contracts;
 using Sales.Contracts.IntegrationEvents;
 using Sales.Endpoints.Features.CancelOrder;
+using Sales.Endpoints.Features.GetCustomerSummary;
 using Sales.Endpoints.Features.GetOrder;
 using Sales.Endpoints.Features.GetOrderStatusCounts;
 using Sales.Endpoints.Features.ListOrders;
@@ -52,5 +53,9 @@ public sealed class SalesModule : IModule
         group.MapListOrders();
         group.MapGetOrderStatusCounts();
         group.MapCancelOrder();
+
+        var customers = endpoints.MapGroup("/api/sales/customers").WithTags("Sales");
+
+        customers.MapGetCustomerSummary();
     }
 }

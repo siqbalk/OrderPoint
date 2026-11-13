@@ -29,6 +29,8 @@ public sealed record OrderSummaryResponse(Guid Id, string CustomerName, OrderSta
         => new(o.Id, o.CustomerName, o.Status, o.Total, o.Lines.Sum(l => l.Quantity), o.PlacedOnUtc);
 }
 
+public sealed record OrderStatusCount(OrderStatus Status, int Count);
+
 internal static class SalesMappings
 {
     public static IReadOnlyList<OrderLineItem> ToLineItems(this Order order)

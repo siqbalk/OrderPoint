@@ -1,5 +1,6 @@
 using NSubstitute;
 using Sales.Application.Abstractions;
+using Sales.Application.Features;
 using Sales.Application.Features.GetOrderStatusCounts;
 using Sales.Domain;
 

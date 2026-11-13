@@ -11,8 +11,6 @@ public sealed record GetOrderStatusCountsQuery : IRequest<Result<OrderStatusCoun
 /// <param name="ByStatus">Every status, in lifecycle order, including those with zero orders.</param>
 public sealed record OrderStatusCountsResponse(int Total, IReadOnlyList<OrderStatusCount> ByStatus);
 
-public sealed record OrderStatusCount(OrderStatus Status, int Count);
-
 public sealed class GetOrderStatusCountsHandler(ISalesDbContext dbContext)
     : IRequestHandler<GetOrderStatusCountsQuery, Result<OrderStatusCountsResponse>>
 {

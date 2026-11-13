@@ -77,4 +77,17 @@ public sealed class SalesDbContext(DbContextOptions<SalesDbContext> options, ITe
             .GroupBy(o => o.Status)
             .Select(g => new { Status = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Status, x => x.Count, cancellationToken);
+
+    public async Task<IReadOnlyList<CustomerOrderStatusTotals>> GetCustomerOrderTotalsAsync(
+        string normalizedEmail, CancellationToken cancellationToken)
+        => await Orders
+            .Where(o => o.CustomerEmail.ToLower() == normalizedEmail)
+            .GroupBy(o => o.Status)
+            .Select(g => new CustomerOrderStatusTotals(
+                g.Key,
+                g.Count(),
+                g.Sum(o => o.Total),
+                g.Min(o => o.PlacedOnUtc),
+                g.Max(o => o.PlacedOnUtc)))
+            .ToListAsync(cancellationToken);
 }

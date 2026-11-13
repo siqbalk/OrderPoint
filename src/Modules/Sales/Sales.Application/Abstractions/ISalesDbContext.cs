@@ -31,7 +31,18 @@ public interface ISalesDbContext
     /// <summary>Number of orders per status; statuses with no orders are absent.</summary>
     Task<Dictionary<OrderStatus, int>> CountOrdersByStatusAsync(CancellationToken cancellationToken);
 
+    /// <summary>One row per status the customer has orders in; empty when they have none.</summary>
+    /// <param name="normalizedEmail">Trimmed and lower-cased; matched case-insensitively.</param>
+    Task<IReadOnlyList<CustomerOrderStatusTotals>> GetCustomerOrderTotalsAsync(string normalizedEmail, CancellationToken cancellationToken);
+
     IOutboxWriter Outbox { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
+
+public sealed record CustomerOrderStatusTotals(
+    OrderStatus Status,
+    int Count,
+    decimal Total,
+    DateTimeOffset FirstPlacedOnUtc,
+    DateTimeOffset LastPlacedOnUtc);
