@@ -99,6 +99,11 @@ internal sealed record StockSummaryView(int SkuCount, long QuantityOnHand, long 
 
 internal sealed record OrderView(Guid Id, string Status, decimal Total, string? RejectionReason, List<OrderLineView> Lines);
 
+internal sealed record CustomerSummaryView(
+    string CustomerEmail, int TotalOrders, decimal TotalSpent, DateTimeOffset FirstOrderOnUtc, DateTimeOffset LastOrderOnUtc, List<StatusCountView> ByStatus);
+
+internal sealed record StatusCountView(string Status, int Count);
+
 internal sealed record OrderLineView(string Sku, string ProductName, int Quantity, decimal UnitPrice, decimal LineTotal);
 
 internal sealed record SalesReportView(decimal Revenue, int ConfirmedOrders, int CancelledOrders, int ItemsSold);

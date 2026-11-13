@@ -180,6 +180,41 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
     }
 
     [Fact]
+    public async Task CustomerSummary_CountsOrdersByStatus_AndConfirmedSpend()
+    {
+        var api = (await fixture.RegisterTenantAsync()).Client;
+        (await api.PostAsJsonAsync("/api/catalog/products", new { Sku = "THINGAMAJIG", Name = "Thingamajig", Price = 10m })).EnsureSuccessStatusCode();
+        (await api.PostAsJsonAsync("/api/inventory/stock", new { Sku = "THINGAMAJIG", Quantity = 20 })).EnsureSuccessStatusCode();
+
+        async Task<OrderView> Place(string email, int quantity) => await (await api.PostAsJsonAsync("/api/sales/orders", new
+        {
+            CustomerName = "Someone",
+            CustomerEmail = email,
+            Lines = new[] { new { Sku = "THINGAMAJIG", Quantity = quantity } },
+        })).ReadAsync<OrderView>(HttpStatusCode.Created);
+
+        var first = await Place("Ada@Example.com", 1);
+        await Place("ada@example.com", 3);
+        await Place("grace@example.com", 5);
+
+        await Api.EventuallyAsync(
+            () => api.GetAsync<CustomerSummaryView>("/api/sales/customers/summary?email=ada@example.com"),
+            s => s is { TotalOrders: 2, TotalSpent: 40m },
+            "both of Ada's orders were confirmed");
+
+        (await api.PostAsync($"/api/sales/orders/{first.Id}/cancel", null)).EnsureSuccessStatusCode();
+        var summary = await api.GetAsync<CustomerSummaryView>("/api/sales/customers/summary?email=%20ADA@example.com");
+        Assert.Equal("ada@example.com", summary.CustomerEmail);
+        Assert.Equal(30m, summary.TotalSpent);
+        Assert.Equal(1, summary.ByStatus.Single(s => s.Status == "Confirmed").Count);
+        Assert.Equal(1, summary.ByStatus.Single(s => s.Status == "Cancelled").Count);
+
+        var unknown = await api.GetAsync("/api/sales/customers/summary?email=nobody@example.com");
+        Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
+        Assert.Equal("Orders.CustomerNotFound", await unknown.ErrorCodeAsync());
+    }
+
+    [Fact]
     public async Task ListOrders_FiltersByPlacedDateRange()
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
