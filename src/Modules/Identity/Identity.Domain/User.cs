@@ -82,6 +82,22 @@ public sealed class User
     }
 
     /// <summary>
+    /// Makes the user an Admin or a Member. The owner's role is fixed, and
+    /// nobody else can become owner: a tenant has exactly one.
+    /// </summary>
+    public Result ChangeRole(TenantRole role)
+    {
+        if (Role == TenantRole.Owner)
+            return Result.Failure(Error.Conflict("Identity.CannotChangeOwnerRole", "The organisation owner's role cannot be changed."));
+
+        if (role == TenantRole.Owner)
+            return Result.Failure(Error.Validation("Identity.InvalidRole", "A tenant has exactly one owner; choose Admin or Member."));
+
+        Role = role;
+        return Result.Success();
+    }
+
+    /// <summary>
     /// Stops the user signing in and frees their seat on the plan; a pending
     /// invitation can no longer be accepted. Disabling twice is a no-op.
     /// </summary>
