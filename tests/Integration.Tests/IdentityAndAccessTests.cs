@@ -65,6 +65,25 @@ public sealed partial class IdentityAndAccessTests(PlatformFixture fixture)
         Assert.Equal("Active", enabled.Status);
         (await fixture.CreateClient().PostAsJsonAsync("/api/identity/auth/login", new { Email = memberEmail, Password = "a long enough password" }))
             .EnsureSuccessStatusCode();
+
+        // Promotion: members cannot change roles; the owner can, and it applies at the next sign-in.
+        Assert.Equal(HttpStatusCode.Forbidden,
+            (await member.PutAsJsonAsync($"/api/identity/users/{me.UserId}/role", new { Role = "Admin" })).StatusCode);
+        var promoted = await (await owner.PutAsJsonAsync($"/api/identity/users/{me.UserId}/role", new { Role = "Admin" })).ReadAsync<UserView>();
+        Assert.Equal("Admin", promoted.Role);
+
+        var adminSession = await (await fixture.CreateClient().PostAsJsonAsync("/api/identity/auth/login", new { Email = memberEmail, Password = "a long enough password" }))
+            .ReadAsync<AuthToken>();
+        var admin = await fixture.WithToken(adminSession.AccessToken).GetAsync<MeView>("/api/identity/me");
+        Assert.Equal("Admin", admin.Role);
+        Assert.Contains("identity:user:manage", admin.Permissions);
+
+        Assert.Equal(HttpStatusCode.BadRequest,
+            (await owner.PutAsJsonAsync($"/api/identity/users/{me.UserId}/role", new { Role = "Owner" })).StatusCode);
+        var ownerMe = await owner.GetAsync<MeView>("/api/identity/me");
+        var ownRole = await owner.PutAsJsonAsync($"/api/identity/users/{ownerMe.UserId}/role", new { Role = "Member" });
+        Assert.Equal(HttpStatusCode.Conflict, ownRole.StatusCode);
+        Assert.Equal("Identity.CannotChangeOwnRole", await ownRole.ErrorCodeAsync());
     }
 
     [Fact]
