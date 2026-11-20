@@ -132,6 +132,36 @@ public sealed class OrderLifecycleTests(PlatformFixture fixture)
     }
 
     [Fact]
+    public async Task WriteOff_RemovesUnreservedUnits_AndRejectsReservedOnes()
+    {
+        var api = (await fixture.RegisterTenantAsync()).Client;
+        (await api.PostAsJsonAsync("/api/catalog/products", new { Sku = "WHATSIT", Name = "Whatsit", Price = 2m })).EnsureSuccessStatusCode();
+        (await api.PostAsJsonAsync("/api/inventory/stock", new { Sku = "WHATSIT", Quantity = 10 })).EnsureSuccessStatusCode();
+        (await api.PostAsJsonAsync("/api/sales/orders", new
+        {
+            CustomerName = "Ada Lovelace",
+            CustomerEmail = "ada@example.com",
+            Lines = new[] { new { Sku = "WHATSIT", Quantity = 4 } },
+        })).EnsureSuccessStatusCode();
+        await Api.EventuallyAsync(
+            () => api.GetAsync<StockView>("/api/inventory/stock/WHATSIT"),
+            s => s.QuantityReserved == 4,
+            "Inventory reserved stock for the order");
+
+        var tooMany = await api.PostAsJsonAsync("/api/inventory/stock/whatsit/write-off", new { Quantity = 7 });
+        Assert.Equal(HttpStatusCode.Conflict, tooMany.StatusCode);
+        Assert.Equal("Stock.BelowReserved", await tooMany.ErrorCodeAsync());
+
+        var after = await (await api.PostAsJsonAsync("/api/inventory/stock/whatsit/write-off", new { Quantity = 6 })).ReadAsync<StockView>();
+        Assert.Equal((4, 4, 0), (after.QuantityOnHand, after.QuantityReserved, after.QuantityAvailable));
+
+        Assert.Equal(HttpStatusCode.BadRequest,
+            (await api.PostAsJsonAsync("/api/inventory/stock/WHATSIT/write-off", new { Quantity = 0 })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await api.PostAsJsonAsync("/api/inventory/stock/NOPE/write-off", new { Quantity = 1 })).StatusCode);
+    }
+
+    [Fact]
     public async Task ListStock_SearchesSkus_CaseInsensitively_AndLiterally()
     {
         var api = (await fixture.RegisterTenantAsync()).Client;

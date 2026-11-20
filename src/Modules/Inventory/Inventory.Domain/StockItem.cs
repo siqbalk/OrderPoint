@@ -59,6 +59,24 @@ public sealed class StockItem
         return Result.Success();
     }
 
+    /// <summary>
+    /// Damaged, lost or expired goods: removes units from on-hand. Only units
+    /// not reserved for open orders can be written off.
+    /// </summary>
+    public Result WriteOff(int quantity, DateTimeOffset now)
+    {
+        if (quantity <= 0)
+            return Result.Failure(Error.Validation("Stock.InvalidQuantity", "Quantity must be positive."));
+        if (quantity > QuantityAvailable)
+            return Result.Failure(Error.Conflict(
+                "Stock.BelowReserved",
+                $"SKU '{Sku}' has only {QuantityAvailable} units not reserved for open orders; cannot write off {quantity}."));
+
+        QuantityOnHand -= quantity;
+        UpdatedOnUtc = now;
+        return Result.Success();
+    }
+
     public void Reserve(int quantity, DateTimeOffset now)
     {
         if (quantity <= 0)

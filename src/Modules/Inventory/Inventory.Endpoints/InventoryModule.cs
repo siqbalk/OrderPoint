@@ -12,6 +12,7 @@ using Inventory.Endpoints.Features.GetStockBySku;
 using Inventory.Endpoints.Features.GetStockSummary;
 using Inventory.Endpoints.Features.ListReservations;
 using Inventory.Endpoints.Features.ListStock;
+using Inventory.Endpoints.Features.WriteOffStock;
 using Inventory.Infrastructure.InternalServices;
 using Inventory.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -50,6 +51,7 @@ public sealed class InventoryModule : IModule
 
         group.MapAddStock();
         group.MapAdjustStock();
+        group.MapWriteOffStock();
         group.MapGetStockBySku();
         group.MapListStock();
 
