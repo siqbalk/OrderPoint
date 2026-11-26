@@ -134,6 +134,19 @@ public sealed class User
         return Result.Success();
     }
 
+    /// <summary>
+    /// Changes the name shown to colleagues. The access token carries the name,
+    /// so a new token reflects it from the next sign-in.
+    /// </summary>
+    public Result Rename(string displayName)
+    {
+        if (string.IsNullOrWhiteSpace(displayName))
+            return Result.Failure(Error.Validation("Identity.DisplayNameRequired", "A display name is required."));
+
+        DisplayName = displayName.Trim();
+        return Result.Success();
+    }
+
     public void RecordLogin(DateTimeOffset now) => LastLoginOnUtc = now;
 }
 

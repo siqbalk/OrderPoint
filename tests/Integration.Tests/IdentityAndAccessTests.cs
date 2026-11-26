@@ -139,6 +139,21 @@ public sealed partial class IdentityAndAccessTests(PlatformFixture fixture)
     }
 
     [Fact]
+    public async Task SignedInUser_CanRenameThemselves()
+    {
+        var owner = (await fixture.RegisterTenantAsync()).Client;
+
+        var renamed = await (await owner.PutAsJsonAsync("/api/identity/me", new { DisplayName = "  Olive Owner  " })).ReadAsync<UserView>();
+        Assert.Equal("Olive Owner", renamed.DisplayName);
+        Assert.Equal("Olive Owner", (await owner.GetAsync<MeView>("/api/identity/me")).DisplayName);
+
+        Assert.Equal(HttpStatusCode.BadRequest,
+            (await owner.PutAsJsonAsync("/api/identity/me", new { DisplayName = "" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized,
+            (await fixture.CreateClient().PutAsJsonAsync("/api/identity/me", new { DisplayName = "Nobody" })).StatusCode);
+    }
+
+    [Fact]
     public async Task Login_WithWrongPassword_Returns401_WithoutRevealingWhetherTheAccountExists()
     {
         var tenant = await fixture.RegisterTenantAsync();

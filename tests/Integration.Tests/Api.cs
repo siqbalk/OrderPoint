@@ -122,6 +122,6 @@ internal sealed record InvitationView(Guid UserId, string Email);
 
 internal sealed record UserView(Guid Id, string Email, string DisplayName, string Role, string Status);
 
-internal sealed record MeView(Guid UserId, string Email, string Role, MeTenantView Tenant, List<string> Permissions);
+internal sealed record MeView(Guid UserId, string Email, string DisplayName, string Role, MeTenantView Tenant, List<string> Permissions);
 
 internal sealed record MeTenantView(Guid Id, string Name, string Plan, int? MaxUsers, int? MaxProducts, int UserCount);
