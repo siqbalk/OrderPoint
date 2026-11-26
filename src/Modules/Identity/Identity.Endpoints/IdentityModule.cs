@@ -16,6 +16,7 @@ using Identity.Endpoints.Features.InviteUser;
 using Identity.Endpoints.Features.ListUsers;
 using Identity.Endpoints.Features.Login;
 using Identity.Endpoints.Features.RegisterTenant;
+using Identity.Endpoints.Features.UpdateProfile;
 using Identity.Infrastructure.InternalServices;
 using Identity.Infrastructure.Persistence;
 using Identity.Infrastructure.Security;
@@ -65,6 +66,7 @@ public sealed class IdentityModule : IModule
         group.MapLogin();
         group.MapAcceptInvitation();
         group.MapGetCurrentUser();
+        group.MapUpdateProfile();
         group.MapListUsers();
         group.MapGetUser();
         group.MapInviteUser();
